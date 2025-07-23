@@ -1,0 +1,1644 @@
+{% extends "base.html" %}
+
+{% block title %}黄梅戏大模型{% endblock %}
+
+{% block extra_css %}
+<style>
+    body, html {
+        height: 100%;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        background-color: #ffffff;
+    }
+    
+    .sidebar {
+        width: 260px;
+        height: 100vh;
+        transition: all 0.3s ease;
+        background-color: #fafafa;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        z-index: 10;
+        border-right: 1px solid #e5e7eb;
+    }
+    
+    .sidebar.collapsed {
+        width: 60px;
+        overflow: hidden;
+        background-color: #ffffff;
+        border-right: 1px solid #e5e7eb;
+        box-shadow: none;
+    }
+    
+    .sidebar-toggle {
+        position: absolute;
+        top: 1rem;
+        right: -12px;
+        width: 24px;
+        height: 24px;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 20;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .sidebar-toggle:hover {
+        background-color: #f5f5f5;
+        transform: scale(1.1);
+    }
+    
+    .sidebar-toggle svg {
+        width: 14px;
+        height: 14px;
+        transition: transform 0.3s ease;
+    }
+    
+    .sidebar.collapsed .sidebar-brand {
+        justify-content: center;
+        padding: 1rem 0;
+    }
+    
+    .sidebar.collapsed .sidebar-brand div:not(.brand-logo) {
+        display: none;
+    }
+    
+    .sidebar.collapsed .sidebar-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 2rem;
+    }
+    
+    .sidebar.collapsed .sidebar-section-title,
+    .sidebar.collapsed .delete-conversation-btn {
+        display: none;
+    }
+    
+    .sidebar.collapsed .history-item span,
+    .sidebar.collapsed .new-chat-btn span {
+        writing-mode: vertical-lr;
+        text-orientation: upright;
+        letter-spacing: -0.1em;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+        text-align: center;
+        height: auto;
+    }
+    
+    .sidebar.collapsed .brand-logo {
+        margin: 0;
+        border-radius: 8px;
+        background-color: #0056A5;
+        color: white;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .sidebar.collapsed .sidebar-header {
+        padding: 1.5rem 0 0.5rem;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .sidebar.collapsed .new-chat-btn {
+        height: auto;
+        min-height: auto;
+        padding: 0.5rem 0;
+        border-radius: 0;
+        margin: 0.5rem auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: transparent;
+        color: #666;
+        box-shadow: none;
+    }
+    
+    .sidebar.collapsed .new-chat-btn svg {
+        margin-bottom: 0.5rem;
+    }
+    
+    .sidebar.collapsed .history-item {
+        height: auto;
+        min-height: auto;
+        width: 60px;
+        padding: 0.5rem 0;
+        border-radius: 0;
+        margin: 0.25rem auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .sidebar.collapsed .history-item:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
+    
+    .sidebar.collapsed .history-item.active {
+        background-color: rgba(0, 86, 165, 0.08);
+        color: #0056A5;
+    }
+    
+    .sidebar.collapsed .history-item svg {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    .sidebar.collapsed .sidebar-footer {
+        display: flex;
+        justify-content: center;
+        padding: 0.5rem 0 1rem;
+        border-top: none;
+    }
+    
+    .sidebar.collapsed .user-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .sidebar.collapsed .user-profile {
+        margin: 0 auto;
+    }
+    
+    .sidebar.collapsed .user-name {
+        display: none;
+    }
+    
+    .sidebar.collapsed .logout-btn {
+        display: flex;
+        width: 40px;
+        height: 40px;
+        background-color: #0056A5;
+        background-image: linear-gradient(135deg, #0056A5, #0077cc);
+        color: white;
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1rem;
+        padding: 0;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 3px 10px rgba(0, 86, 165, 0.3);
+    }
+    
+    .sidebar.collapsed .logout-text {
+        display: none;
+    }
+    
+    .sidebar.collapsed .logout-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(0, 86, 165, 0.4);
+    }
+    
+    .sidebar.collapsed .logout-btn svg {
+        margin: 0;
+        stroke: white;
+    }
+    
+    .sidebar.collapsed .user-avatar {
+        margin: 0;
+        background-color: #0056A5;
+        background-image: linear-gradient(135deg, #0070dd, #0056A5);
+        border: 2px solid rgba(255, 255, 255, 0.95);
+        box-shadow: 0 3px 8px rgba(0, 86, 165, 0.25);
+    }
+    
+    .sidebar.collapsed .user-avatar.admin {
+        background-image: linear-gradient(135deg, #FF5722, #FF9800);
+        border: 2px solid rgba(255, 255, 255, 0.95);
+        box-shadow: 0 3px 8px rgba(255, 87, 34, 0.25);
+    }
+    
+    .chat-area {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-color: #ffffff;
+        background-image: url('/static/images/hmx.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        position: relative;
+    }
+    
+    .chat-area::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.7);
+        z-index: 0;
+        pointer-events: none;
+    }
+    
+    .welcome-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 8rem 1rem 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+        width: 100%;
+    }
+    
+    .welcome-icon {
+        margin-bottom: 2rem;
+        color: #0056A5;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .welcome-content, .message-container, .typing-indicator, .input-area {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .welcome-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 8rem 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+        width: 100%;
+        background-color: transparent;
+        backdrop-filter: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+    
+    .welcome-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #0056A5;
+        line-height: 1.3;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .welcome-subtitle {
+        font-size: 1.2rem;
+        color: #333;
+        max-width: 600px;
+        line-height: 1.6;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    }
+    
+    .message-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem 0;
+        display: flex;
+        flex-direction: column;
+        scroll-behavior: smooth;
+    }
+    
+    .message-group {
+        max-width: 800px;
+        margin: 0 auto;
+        width: 100%;
+        padding: 1rem 1.5rem;
+    }
+    
+    .message {
+        max-width: 85%;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.75rem;
+        line-height: 1.6;
+        font-size: 0.95rem;
+        position: relative;
+    }
+    
+    .chat-message-wrapper {
+        width: 100%;
+        margin: 0.5rem 0;
+        display: flex;
+        animation: fadeInUp 0.3s forwards;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .chat-message-wrapper.user-wrapper {
+        justify-content: flex-end;
+    }
+    
+    .chat-message-wrapper.bot-wrapper {
+        justify-content: flex-start;
+        background-color: transparent;
+        backdrop-filter: none;
+        margin: 0;
+        padding: 1.5rem 0;
+    }
+    
+    .user-message {
+        background-color: #0056A5;
+        box-shadow: 0 2px 10px rgba(0, 86, 165, 0.2);
+        color: white;
+        border: none;
+        margin-right: 0.5rem;
+    }
+    
+    .bot-message {
+        background-color: transparent;
+        color: #1a1a1a;
+        border: none;
+        font-weight: 500;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+        line-height: 1.7;
+    }
+    
+    /* 修改思考过程样式 */
+    .reasoning-content {
+        margin-top: 0.5rem;
+        padding: 1rem 0 0.5rem 1rem;
+        background-color: transparent;
+        font-size: 0.9rem;
+        color: #444;
+        white-space: pre-wrap;
+        border-left: 2px solid rgba(0, 86, 165, 0.2);
+        box-shadow: none;
+        line-height: 1.5;
+        border-bottom: none;
+        border-radius: 0;
+    }
+    
+    .reasoning-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        color: #0056A5;
+        font-size: 0.85rem;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.2s;
+    }
+    
+    .reasoning-toggle:hover {
+        color: #004a8c;
+        text-decoration: underline;
+    }
+    
+    .reasoning-toggle svg {
+        width: 16px;
+        height: 16px;
+        transition: transform 0.2s;
+    }
+    
+    .reasoning-toggle.expanded svg {
+        transform: rotate(180deg);
+    }
+    
+    .reasoning-content.hidden {
+        display: none;
+    }
+    
+    .input-area {
+        background-color: transparent;
+        backdrop-filter: none;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: center;
+        border-top: 1px solid rgba(229, 231, 235, 0.3);
+        position: relative;
+    }
+    
+    .input-container {
+        max-width: 800px;
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(3px);
+        box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+        border-radius: 1rem;
+        padding: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        transition: all 0.2s ease;
+    }
+    
+    .input-container:focus-within {
+        background-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        border-color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .typing-indicator {
+        padding: 1rem 1.5rem;
+        background-color: #f9fafb;
+    }
+    
+    .typing-indicator span {
+        animation: blink 1.4s infinite;
+        animation-fill-mode: both;
+        background-color: #0056A5;
+        border-radius: 50%;
+        display: inline-block;
+        height: 5px;
+        margin: 0 2px;
+        width: 5px;
+    }
+    
+    .typing-indicator span:nth-child(2) { animation-delay: .2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: .4s; }
+    
+    @keyframes blink {
+        0% { opacity: .2; }
+        20% { opacity: 1; }
+        100% { opacity: .2; }
+    }
+    
+    .message-input {
+        background-color: transparent;
+        border: none;
+        color: #1a1a1a;
+        font-size: 0.95rem;
+        width: 100%;
+        resize: none;
+        min-height: 24px;
+        max-height: 200px;
+        padding: 0 0.5rem;
+    }
+    
+    .message-input::placeholder {
+        color: rgba(35, 35, 35, 0.65);
+        opacity: 0.9;
+    }
+    
+    .message-input:focus {
+        outline: none;
+    }
+    
+    .message-input:focus::placeholder {
+        opacity: 0.5;
+    }
+    
+    .bot-avatar {
+        width: 36px;
+        height: 36px;
+        background-color: transparent;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        background-image: url('/static/images/school.png');
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    
+    .function-buttons {
+        display: none;
+    }
+    
+    .send-button {
+        background-color: transparent;
+        border: none;
+        color: #0056A5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        opacity: 0.8;
+    }
+    
+    .send-button:hover {
+        opacity: 1;
+        background-color: rgba(0, 86, 165, 0.1);
+    }
+    
+    .send-button svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    /* 滚动条样式 */
+    ::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    /* 日期和时间显示 */
+    .message-date {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-top: 0.5rem;
+    }
+    
+    /* 侧边栏样式 */
+    .sidebar-header {
+        padding: 1.25rem;
+        background-color: transparent;
+    }
+    
+    .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+    }
+    
+    .brand-logo {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 8px;
+        background-color: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        background-image: url('/static/images/school.png');
+        background-size: cover;
+        background-position: center;
+    }
+    
+    .brand-text {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        line-height: 1.2;
+    }
+    
+    .brand-subtitle {
+        font-size: 0.8rem;
+        color: #666;
+    }
+    
+    .sidebar-content {
+        flex: 1;
+        padding: 0 0.75rem;
+        overflow-y: auto;
+    }
+    
+    .agent-section {
+        margin-bottom: 1rem;
+    }
+    
+    .agent-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        color: #1a1a1a;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 0.25rem;
+        text-decoration: none;
+        background-color: rgba(0, 0, 0, 0.02);
+        border-left: 3px solid transparent;
+    }
+    
+    .agent-item:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        border-left-color: #0056A5;
+    }
+    
+    .agent-item.hmx {
+        border-left-color: #E65100;
+    }
+    
+    .agent-item.guide {
+        border-left-color: #2E7D32;
+    }
+    
+    .agent-item.research {
+        border-left-color: #1565C0;
+    }
+    
+    .agent-item.code {
+        border-left-color: #4527A0;
+    }
+    
+    .agent-item svg {
+        width: 18px;
+        height: 18px;
+        margin-right: 0.75rem;
+        color: #666;
+        flex-shrink: 0;
+    }
+    
+    .agent-item.hmx svg {
+        color: #E65100;
+    }
+    
+    .agent-item.guide svg {
+        color: #2E7D32;
+    }
+    
+    .agent-item.research svg {
+        color: #1565C0;
+    }
+    
+    .agent-item.code svg {
+        color: #4527A0;
+    }
+    
+    .sidebar.collapsed .agent-item {
+        height: auto;
+        min-height: auto;
+        width: 60px;
+        padding: 0.5rem 0;
+        border-radius: 0;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+        margin: 0.25rem auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: transparent;
+    }
+    
+    .sidebar.collapsed .agent-item.hmx {
+        border-bottom-color: #E65100;
+    }
+    
+    .sidebar.collapsed .agent-item.guide {
+        border-bottom-color: #2E7D32;
+    }
+    
+    .sidebar.collapsed .agent-item.research {
+        border-bottom-color: #1565C0;
+    }
+    
+    .sidebar.collapsed .agent-item.code {
+        border-bottom-color: #4527A0;
+    }
+    
+    .sidebar.collapsed .agent-item span {
+        writing-mode: vertical-lr;
+        text-orientation: upright;
+        letter-spacing: -0.1em;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+        text-align: center;
+        height: auto;
+    }
+    
+    .sidebar.collapsed .agent-item svg {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    .new-chat-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #0056A5;
+        border: none;
+        color: white;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        width: 100%;
+        margin: 0 0 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .new-chat-btn:hover {
+        background-color: #004a8c;
+    }
+    
+    .new-chat-btn svg {
+        margin-right: 0.5rem;
+        width: 16px;
+        height: 16px;
+    }
+    
+    .sidebar-section-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0 0.5rem;
+        margin: 1.5rem 0 0.75rem;
+    }
+    
+    .history-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        color: #1a1a1a;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 0.25rem;
+        text-decoration: none;
+        position: relative;
+    }
+    
+    .history-item:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    .history-item.active {
+        background-color: rgba(0, 86, 165, 0.1);
+        color: #0056A5;
+    }
+    
+    .history-item svg {
+        width: 16px;
+        height: 16px;
+        margin-right: 0.75rem;
+        color: #666;
+        flex-shrink: 0;
+    }
+    
+    .history-item .conversation-title {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .delete-conversation-btn {
+        opacity: 0;
+        background: none;
+        border: none;
+        padding: 4px;
+        color: #666;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .history-item:hover .delete-conversation-btn {
+        opacity: 1;
+    }
+    
+    .delete-conversation-btn:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+        color: #ff4444;
+    }
+    
+    .history-date {
+        font-size: 0.8rem;
+        color: #666;
+        padding: 0.5rem 0.75rem;
+        margin-top: 1rem;
+    }
+    
+    .sidebar-footer {
+        padding: 1rem;
+        background-color: transparent;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .user-avatar {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        background-color: #0056A5;
+        background-image: linear-gradient(135deg, #0070dd, #0056A5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: 0 3px 8px rgba(0, 86, 165, 0.25);
+        border: 2px solid rgba(255, 255, 255, 0.95);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .user-avatar::before {
+        content: "";
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        right: -10px;
+        bottom: -10px;
+        background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+        transform: rotate(35deg) translateX(-20px);
+        transition: all 0.5s ease;
+    }
+    
+    .user-avatar:hover {
+        transform: scale(1.08);
+        box-shadow: 0 4px 12px rgba(0, 86, 165, 0.4);
+    }
+    
+    .user-avatar:hover::before {
+        transform: rotate(35deg) translateX(60px);
+    }
+    
+    .user-avatar.admin {
+        background-image: linear-gradient(135deg, #FF5722, #FF9800);
+        border: 2px solid rgba(255, 255, 255, 0.95);
+        box-shadow: 0 3px 10px rgba(255, 87, 34, 0.25);
+        position: relative;
+    }
+    
+    .user-avatar.admin::after {
+        content: "★";
+        position: absolute;
+        top: -6px;
+        right: -2px;
+        background-image: linear-gradient(135deg, #FF9800, #FF5722);
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        border: 1.5px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+    
+    .user-avatar.admin:hover {
+        box-shadow: 0 4px 12px rgba(255, 87, 34, 0.4);
+    }
+    
+    .user-name {
+        font-size: 0.9rem;
+        color: #1a1a1a;
+        font-weight: 600;
+    }
+    
+    .logout-btn {
+        color: #666;
+        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+        border-radius: 1.5rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        background: linear-gradient(to right, rgba(0, 86, 165, 0.05), rgba(0, 86, 165, 0.15));
+        border: 1px solid rgba(0, 86, 165, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .logout-btn svg {
+        width: 16px;
+        height: 16px;
+        stroke: #0056A5;
+        transition: transform 0.3s ease;
+    }
+    
+    .logout-btn:hover {
+        background: linear-gradient(to right, rgba(0, 86, 165, 0.15), rgba(0, 86, 165, 0.25));
+        color: #0056A5;
+        box-shadow: 0 2px 8px rgba(0, 86, 165, 0.15);
+    }
+    
+    .logout-btn:hover svg {
+        transform: translateX(2px);
+    }
+    
+    .typing {
+        display: inline-block;
+        min-height: 1.6em;
+        position: relative;
+    }
+    
+    .typing::after {
+        content: '|';
+        position: relative;
+        display: inline-block;
+        animation: blink 0.7s infinite;
+        margin-left: 2px;
+        color: currentColor;
+    }
+    
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+
+    .bot-message.typing-effect {
+        min-height: 24px;
+    }
+    
+    .bot-message.typing-effect .content {
+        display: inline;
+    }
+
+    /* 添加API错误提示样式 */
+    .error-message {
+        background-color: rgba(255, 235, 235, 0.8);
+        border-left: 4px solid #e53935;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 0.5rem;
+        color: #c62828;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .error-message svg {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+    }
+
+    .error-content {
+        flex: 1;
+    }
+
+    .error-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .error-details {
+        font-size: 0.85rem;
+        color: #d32f2f;
+    }
+
+    .retry-button {
+        background-color: #d32f2f;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+        cursor: pointer;
+        margin-top: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .retry-button:hover {
+        background-color: #b71c1c;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex h-screen">
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-toggle" id="sidebarToggle">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </div>
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-brand">
+                <div class="brand-logo">
+                    <!-- 图片已通过CSS设置为背景 -->
+                </div>
+                <div>
+                    <div class="brand-text">黄梅戏大模型</div>
+                    <div class="brand-subtitle">V2.0</div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="sidebar-content">
+            <a href="{{ url_for('new_chat') }}" class="new-chat-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M5 12h14"></path>
+                </svg>
+                <span>开启新对话</span>
+            </a>
+            
+            <div class="sidebar-section-title">黄梅戏专用助手</div>
+            <div class="agent-section">
+                <a href="#" class="agent-item hmx" onclick="selectAgent(event, 'hmx')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                    </svg>
+                    <span>黄梅戏剧本创作</span>
+                </a>
+                <a href="#" class="agent-item guide" onclick="selectAgent(event, 'guide')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <span>黄梅戏知识问答</span>
+                </a>
+                <a href="#" class="agent-item research" onclick="selectAgent(event, 'research')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                    </svg>
+                    <span>经典剧目赏析</span>
+                </a>
+                <a href="#" class="agent-item code" onclick="selectAgent(event, 'code')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 18 22 12 16 6"></polyline>
+                        <polyline points="8 6 2 12 8 18"></polyline>
+                    </svg>
+                    <span>黄梅戏文化研究</span>
+                </a>
+            </div>
+            
+            {% if conversations %}
+                <div class="sidebar-section-title">最近对话</div>
+                {% for conversation in conversations %}
+                    <a href="{{ url_for('chat', conversation_id=conversation.id) }}" 
+                       class="history-item {% if conversation.id == conversation_id %}active{% endif %}"
+                       data-conversation-id="{{ conversation.id }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span class="truncate conversation-title">{{ conversation.title }}</span>
+                        <button class="delete-conversation-btn" onclick="deleteConversation(event, '{{ conversation.id }}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 6L6 18M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </a>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-profile">
+                    <div class="user-avatar {% if current_user.username == 'admin' %}admin{% endif %}">
+                        {{ current_user.username[0] }}
+                    </div>
+                    <div class="user-name">{{ current_user.username }}</div>
+                </div>
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span class="logout-text">登出</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="flex-1 chat-area">
+        {% if not messages %}
+        <div class="welcome-content">
+            <div class="welcome-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="#0056A5" stroke="none">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                </svg>
+            </div>
+            <h1 class="welcome-title">欢迎使用黄梅戏大模型</h1>
+            <p class="welcome-subtitle">我专注于黄梅戏传统文化，可以帮您创作黄梅戏剧本、解答黄梅戏历史知识，赏析经典唱段，传承安徽特色戏曲艺术。请随时向我提问！</p>
+        </div>
+        {% else %}
+        <div class="message-container" id="messageContainer">
+            {% for message in messages %}
+                <div class="chat-message-wrapper {% if message.is_bot %}bot-wrapper{% else %}user-wrapper{% endif %}">
+                    <div class="message-group">
+                        {% if message.is_bot %}
+                        <div class="flex items-start">
+                            <div class="bot-avatar">
+                                <!-- 图片已通过CSS设置为背景 -->
+                            </div>
+                            <div class="flex-1">
+                                <div class="message bot-message typing-effect">
+                                    <div class="content">{{ message.content }}</div>
+                                    {% if message.reasoning_content %}
+                                    <div class="reasoning-toggle" onclick="toggleReasoning(this)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                        查看思考过程
+                                    </div>
+                                    <div class="reasoning-content hidden">{{ message.reasoning_content }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="message-date ml-0">{{ message.timestamp|default(now()) }}</div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="message user-message">
+                            <div class="message-content">{{ message.content }}</div>
+                            <div class="message-date">{{ message.timestamp|default(now()) }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="typing-indicator hidden">
+            <div class="message-group">
+                <div class="flex items-start">
+                    <div class="bot-avatar">
+                        <!-- 图片已通过CSS设置为背景 -->
+                    </div>
+                    <div class="flex items-center">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <div class="input-container">
+                <form id="messageForm" class="flex items-center">
+                    <input type="text" id="messageInput"
+                        class="message-input"
+                        placeholder="输入你的问题...">
+                    <button type="submit" class="send-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 2L11 13"></path>
+                            <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加智能体iframe -->
+<iframe src="http://api-chat.gjzn.top/index-insert.html" 
+    style="position: fixed; bottom: 0; right: 0; width: 420px; 
+    height: 650px; border: none; z-index: 999999; 
+    background: transparent; overflow: hidden;"
+    allowtransparency="true" scrolling="no" frameborder="0">
+</iframe>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const messageContainer = document.getElementById('messageContainer');
+const messageForm = document.getElementById('messageForm');
+const messageInput = document.getElementById('messageInput');
+const typingIndicator = document.querySelector('.typing-indicator');
+const sidebar = document.getElementById('sidebar');
+const sidebarToggle = document.getElementById('sidebarToggle');
+
+// 侧边栏展开收起功能
+sidebarToggle.addEventListener('click', function() {
+    sidebar.classList.toggle('collapsed');
+    
+    // 根据侧边栏状态切换图标方向
+    if (sidebar.classList.contains('collapsed')) {
+        this.querySelector('svg').style.transform = 'rotate(180deg)';
+        localStorage.setItem('sidebarCollapsed', 'true');
+    } else {
+        this.querySelector('svg').style.transform = 'rotate(0deg)';
+        localStorage.setItem('sidebarCollapsed', 'false');
+    }
+});
+
+// 保存和恢复侧边栏状态
+window.addEventListener('load', function() {
+    const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    if (isSidebarCollapsed) {
+        sidebar.classList.add('collapsed');
+        sidebarToggle.querySelector('svg').style.transform = 'rotate(180deg)';
+    }
+    
+    // 原有的加载函数内容
+    if (messageInput) {
+        messageInput.focus();
+    }
+    scrollToBottom();
+});
+
+function scrollToBottom() {
+    if (messageContainer) {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+}
+
+function showTypingIndicator() {
+    typingIndicator.classList.remove('hidden');
+    scrollToBottom();
+}
+
+function hideTypingIndicator() {
+    typingIndicator.classList.add('hidden');
+}
+
+function formatTimestamp(isoString) {
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function toggleReasoning(element) {
+    const reasoningContent = element.nextElementSibling;
+    const isHidden = reasoningContent.classList.contains('hidden');
+    
+    if (isHidden) {
+        reasoningContent.classList.remove('hidden');
+        element.classList.add('expanded');
+        element.querySelector('span').textContent = '收起思考过程';
+    } else {
+        reasoningContent.classList.add('hidden');
+        element.classList.remove('expanded');
+        element.querySelector('span').textContent = '查看思考过程';
+    }
+    
+    scrollToBottom();
+}
+
+async function typeWriter(element, text, speed = 50) {
+    let index = 0;
+    element.textContent = '';
+    element.classList.add('typing');
+    
+    return new Promise((resolve) => {
+        function type() {
+            if (index < text.length) {
+                element.textContent += text.charAt(index);
+                index++;
+                setTimeout(type, speed);
+            } else {
+                element.classList.remove('typing');
+                resolve();
+            }
+        }
+        type();
+    });
+}
+
+async function appendMessage(content, isBot, timestamp, reasoningContent = null) {
+    const welcomeContainer = document.querySelector('.welcome-content');
+    if (welcomeContainer) {
+        welcomeContainer.remove();
+        
+        const messageContainerDiv = document.createElement('div');
+        messageContainerDiv.className = 'message-container';
+        messageContainerDiv.id = 'messageContainer';
+        document.querySelector('.chat-area').insertBefore(messageContainerDiv, document.querySelector('.typing-indicator'));
+    }
+    
+    const messageWrapper = document.createElement('div');
+    messageWrapper.className = `chat-message-wrapper ${isBot ? 'bot-wrapper' : 'user-wrapper'}`;
+    
+    const messageGroup = document.createElement('div');
+    messageGroup.className = 'message-group';
+    
+    const formattedTime = timestamp ? formatTimestamp(timestamp) : formatTimestamp(new Date().toISOString());
+    
+    if (isBot) {
+        messageGroup.innerHTML = `
+            <div class="flex items-start">
+                <div class="bot-avatar">
+                    <!-- 图片已通过CSS设置为背景 -->
+                </div>
+                <div class="flex-1">
+                    <div class="message bot-message typing-effect">
+                        <div class="content"></div>
+                        ${reasoningContent ? `
+                            <div class="reasoning-toggle expanded" onclick="toggleReasoning(this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                                <span>收起思考过程</span>
+                            </div>
+                            <div class="reasoning-content"></div>
+                        ` : ''}
+                    </div>
+                    <div class="message-date ml-0">${formattedTime}</div>
+                </div>
+            </div>
+        `;
+        
+        messageWrapper.appendChild(messageGroup);
+        document.getElementById('messageContainer').appendChild(messageWrapper);
+        
+        const contentElement = messageWrapper.querySelector('.content');
+        const reasoningElement = messageWrapper.querySelector('.reasoning-content');
+        const reasoningToggle = messageWrapper.querySelector('.reasoning-toggle');
+        
+        if (reasoningContent) {
+            await typeWriter(reasoningElement, reasoningContent);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            reasoningElement.classList.add('hidden');
+            reasoningToggle.classList.remove('expanded');
+            reasoningToggle.querySelector('span').textContent = '查看思考过程';
+        }
+        
+        await typeWriter(contentElement, content);
+        
+    } else {
+        messageGroup.innerHTML = `
+            <div class="message user-message">
+                <div class="message-content">${content}</div>
+                <div class="message-date">${formattedTime}</div>
+            </div>
+        `;
+        messageWrapper.appendChild(messageGroup);
+        document.getElementById('messageContainer').appendChild(messageWrapper);
+    }
+    
+    scrollToBottom();
+}
+
+messageForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = messageInput.value.trim();
+    if (!message) return;
+    
+    messageInput.value = '';
+    messageInput.disabled = true;
+    
+    // 修改获取会话ID的方式
+    let currentConversationId = null;
+    const activeItem = document.querySelector('.history-item.active');
+    if (activeItem) {
+        currentConversationId = activeItem.getAttribute('data-conversation-id');
+    }
+    // 获取URL中的conversation_id
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlConversationId = urlParams.get('conversation_id');
+    if (urlConversationId && !currentConversationId) {
+        currentConversationId = urlConversationId;
+    }
+    
+    appendMessage(message, false, new Date().toISOString());
+    showTypingIndicator();
+    
+    try {
+        const response = await fetch('/send_message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message,
+                conversation_id: currentConversationId
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        hideTypingIndicator();
+        
+        if (!currentConversationId) {
+            window.location.href = `/chat?conversation_id=${data.conversation_id}`;
+            return;
+        }
+        
+        await appendMessage(
+            data.bot_message.content,
+            true,
+            data.bot_message.timestamp,
+            data.bot_message.reasoning_content
+        );
+    } catch (error) {
+        hideTypingIndicator();
+        console.error('Error:', error);
+        showErrorMessage('连接服务器失败', '无法连接到AI服务器，请检查您的网络连接或稍后重试。', message);
+    }
+    
+    messageInput.disabled = false;
+    messageInput.focus();
+});
+
+async function deleteConversation(event, conversationId) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    try {
+        const response = await fetch(`/delete_conversation/${conversationId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (data.success) {
+            window.location.href = '/chat';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('删除对话失败，请重试');
+    }
+}
+
+window.addEventListener('load', () => {
+    if (messageInput) {
+        messageInput.focus();
+    }
+    scrollToBottom();
+});
+
+scrollToBottom();
+
+// 添加清除消息容器的函数
+function clearMessages() {
+    if (messageContainer) {
+        messageContainer.innerHTML = '';
+    }
+}
+
+// 添加显示欢迎界面的函数
+function showWelcomeContainer() {
+    const existingWelcome = document.querySelector('.welcome-content');
+    if (!existingWelcome) {
+        const welcomeHtml = `
+            <div class="welcome-content">
+                <div class="welcome-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="#0056A5" stroke="none">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    </svg>
+                </div>
+                <h1 class="welcome-title">欢迎使用黄梅戏大模型</h1>
+                <p class="welcome-subtitle">我专注于黄梅戏传统文化，可以帮您创作黄梅戏剧本、解答黄梅戏历史知识，赏析经典唱段，传承安徽特色戏曲艺术。请随时向我提问！</p>
+            </div>
+        `;
+        document.querySelector('.chat-area').insertAdjacentHTML('afterbegin', welcomeHtml);
+    }
+}
+
+// 修改新对话按钮的点击事件
+document.querySelector('.new-chat-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    clearMessages();
+    showWelcomeContainer();
+    // 移除所有对话项的激活状态
+    document.querySelectorAll('.history-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    // 跳转到新对话页面
+    window.location.href = this.href;
+});
+
+// 选择智能体函数
+function selectAgent(event, agentType) {
+    event.preventDefault();
+    
+    // 设置智能体类型
+    let agentPrompt = '';
+    let agentTitle = '';
+    
+    switch(agentType) {
+        case 'hmx':
+            agentPrompt = '你现在是一个专业的黄梅戏剧本创作助手。请帮我创作黄梅戏剧本，保持黄梅戏的传统风格和韵律特点，注重安徽黄梅戏的艺术特色。';
+            agentTitle = '黄梅戏剧本创作';
+            break;
+        case 'guide':
+            agentPrompt = '你现在是黄梅戏知识问答助手。请提供关于黄梅戏的历史、流派、角色行当、经典剧目、著名艺术家等方面的详细信息和知识解答。';
+            agentTitle = '黄梅戏知识问答';
+            break;
+        case 'research':
+            agentPrompt = '你现在是一个黄梅戏经典剧目赏析助手。请帮助用户理解和欣赏《天仙配》《女驸马》《牛郎织女》等经典黄梅戏剧目的艺术价值和表演特点。';
+            agentTitle = '经典剧目赏析';
+            break;
+        case 'code':
+            agentPrompt = '你现在是一名黄梅戏文化研究助手，专注于帮助学者研究黄梅戏的历史演变、文化内涵、音乐特点等学术工作。请提供专业、系统的黄梅戏文化研究指导。';
+            agentTitle = '黄梅戏文化研究';
+            break;
+        default:
+            agentPrompt = '';
+    }
+    
+    if(agentPrompt) {
+        clearMessages();
+        showWelcomeContainer();
+        // 移除所有历史对话的激活状态
+        document.querySelectorAll('.history-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // 创建新对话
+        fetch('/new_chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                title: agentTitle,
+                system_prompt: agentPrompt
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                // 跳转到新创建的对话
+                window.location.href = `/chat?conversation_id=${data.conversation_id}`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('创建智能体对话失败，请重试');
+        });
+    }
+}
+
+// 添加显示错误消息的函数
+function showErrorMessage(title, message, originalMessage) {
+    const messageContainer = document.getElementById('messageContainer');
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'message-group';
+    errorDiv.innerHTML = `
+        <div class="error-message">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <div class="error-content">
+                <div class="error-title">${title}</div>
+                <div class="error-details">${message}</div>
+                <button class="retry-button" onclick="retryMessage('${originalMessage.replace(/'/g, "\\'")}')">
+                    重试
+                </button>
+            </div>
+        </div>
+    `;
+    
+    if (messageContainer) {
+        messageContainer.appendChild(errorDiv);
+        scrollToBottom();
+    }
+}
+
+// 添加重试发送消息的函数
+function retryMessage(message) {
+    if (messageInput) {
+        messageInput.value = message;
+        messageInput.focus();
+    }
+}
+</script>
+{% endblock %} 
